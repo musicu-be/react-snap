@@ -1,4 +1,5 @@
 const puppeteer = require("puppeteer");
+const minimatch = require('minimatch');
 const _ = require("highland");
 const url = require("url");
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
@@ -173,7 +174,7 @@ const crawl = async opt => {
    * @returns {void}
    */
   const addToQueue = newUrl => {
-    const { hostname, search, hash, port } = url.parse(newUrl);
+    const { hostname, search, hash, port, path } = url.parse(newUrl);
     newUrl = newUrl.replace(`${search || ""}${hash || ""}`, "");
 
     // Ensures that only link on the same port are crawled
@@ -186,6 +187,14 @@ const crawl = async opt => {
 
     if (hostname === "localhost" && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed) {
       uniqueUrls.add(newUrl);
+      if (
+        (options.exclude || []).some((g) => minimatch(path, g))
+        &&  !(options.include || []).includes(path)
+      ) {
+        console.log('🙈  excluding', path)
+        return;
+      }
+
       enqued++;
       queue.write(newUrl);
       if (enqued == 2 && options.crawl) {

@@ -4,6 +4,8 @@ const fs = require("fs");
 const writeFileSpy = jest.spyOn(fs, "writeFile");
 writeFileSpy.mockImplementation((file, data, cb) => cb());
 
+jest.setTimeout(15000);
+
 const { mockFs } = require("./helper.js");
 const { run } = require("./../index.js");
 const snapRun = (fs, options) =>
